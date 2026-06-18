@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -11,6 +11,9 @@
             background: #f0f4f8; 
             color: #333;
             line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
         .header { 
             width: 100%; 
@@ -21,7 +24,13 @@
             font-size: 20px; 
             font-weight: bold;
         }
-        .container { max-width: 400px; margin: 0 auto; padding: 20px; }
+        .container { 
+            max-width: 400px; 
+            margin: 0 auto; 
+            padding: 20px; 
+            width: 100%;
+            flex: 1;
+        }
         .card { 
             background: #fff; 
             border-radius: 12px; 
@@ -53,7 +62,11 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: all 0.2s;
+            user-select: none;
         }
+        .qty-btn:hover { background: #2563eb; color: #fff; }
+        .qty-btn:active { transform: scale(0.95); }
         .qty-box { 
             width: 60px; 
             height: 48px; 
@@ -64,6 +77,7 @@
             justify-content: center; 
             font-size: 24px; 
             font-weight: bold;
+            background: #fff;
         }
         .amount-box { 
             border: 1px solid #cbd5e1; 
@@ -85,42 +99,227 @@
             font-size: 16px; 
             cursor: pointer; 
             margin-top: 12px;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            transition: background 0.2s;
         }
+        .btn:hover { background: #1d4ed8; }
         .btn-outline { 
             background: #fff; 
             color: #2563eb; 
             border: 2px solid #2563eb; 
         }
+        .btn-outline:hover { background: #eff6ff; }
         .center { text-align: center; }
-        .warning-icon { font-size: 48px; margin-bottom: 16px; }
+        
+        /* Payment page styles */
+        .qr-wrap {
+            background: #fff;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 16px;
+            display: inline-block;
+            margin: 12px 0;
+        }
+        .qr-placeholder {
+            width: 200px;
+            height: 200px;
+            background: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        /* Result pages */
+        .success-icon { font-size: 56px; color: #4ecca3; margin-bottom: 16px; }
+        .fail-icon { font-size: 56px; color: #e94560; margin-bottom: 16px; }
         .big { font-size: 22px; font-weight: bold; margin: 12px 0; }
         .sub { font-size: 14px; color: #666; margin-bottom: 8px; }
+        .divider { border: none; border-top: 1px solid #e2e8f0; margin: 16px 0; }
+        
+        /* Staff PIN page */
+        .pin-row { display: flex; justify-content: center; gap: 12px; margin: 20px 0; }
+        .pin-dot {
+            width: 16px;
+            height: 16px;
+            border: 2px solid #2563eb;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+        .pin-dot.filled { background: #2563eb; }
+        .pin-pad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            max-width: 280px;
+            margin: 0 auto;
+        }
+        .pin-btn {
+            aspect-ratio: 1;
+            border: 2px solid #2563eb;
+            background: #fff;
+            color: #2563eb;
+            border-radius: 10px;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .pin-btn:hover { background: #2563eb; color: #fff; }
+        .pin-btn.wide { grid-column: span 3; aspect-ratio: auto; padding: 14px; }
+        
+        /* Footer */
         .footer { 
             background: #1e3a5f; 
             color: #fff; 
             padding: 30px 20px; 
-            margin-top: 40px;
+            margin-top: auto;
         }
         .footer-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; margin-bottom: 20px; }
         .footer-links a { color: #fff; text-decoration: none; font-size: 14px; }
         .footer-links a:hover { text-decoration: underline; }
         .copyright { text-align: center; font-size: 12px; color: #94a3b8; }
+        
+        /* Hidden sections */
+        .section { display: none; }
+        .section.active { display: block; }
     </style>
 </head>
 <body>
     <div class="header">Sanitary Pad Dispenser</div>
     
     <div class="container">
-        <div class="card center">
-            <div class="badge badge-green">Stock : 10</div>
-            <div class="label">Select Quantity</div>
-            <div class="qty-row">
-                <button class="qty-btn">−</button>
-                <div class="qty-box">1</div>
-                <button class="qty-btn">+</button>
+        <!-- HOME PAGE -->
+        <div id="homeSection" class="section active">
+            <div class="card center">
+                <div class="badge badge-green" id="stockBadge">Stock : 10</div>
+                <div class="label">Select Quantity</div>
+                <div class="qty-row">
+                    <button class="qty-btn" onclick="changeQty(-1)">−</button>
+                    <div class="qty-box" id="qtyDisplay">1</div>
+                    <button class="qty-btn" onclick="changeQty(1)">+</button>
+                </div>
+                <div class="amount-box" id="amountDisplay">Amount : Rs. 10</div>
+                <button class="btn" onclick="goToPayment()">Continue to Payment >></button>
             </div>
-            <div class="amount-box">Amount : Rs. 10</div>
-            <button class="btn">Continue to Payment >></button>
+        </div>
+        
+        <!-- PAYMENT PAGE -->
+        <div id="paymentSection" class="section">
+            <div class="card center">
+                <div class="sub">Scan QR to confirm payment</div>
+                <div class="big" id="paymentAmount">Rs. 30</div>
+                <div class="sub" id="paymentQty">Qty: 3 pad(s)</div>
+                <hr class="divider">
+                <div class="qr-wrap">
+                    <canvas id="qrCanvas" width="200" height="200"></canvas>
+                </div>
+                <p class="sub" style="margin-top:8px">Scan this QR with any camera app</p>
+                <p class="sub">Dispensing starts automatically</p>
+                <hr class="divider">
+                <button class="btn btn-outline" onclick="cancelPayment()">Cancel</button>
+            </div>
+        </div>
+        
+        <!-- DISPENSING PAGE -->
+        <div id="dispensingSection" class="section">
+            <div class="card center">
+                <div class="spinner" style="border:4px solid #e2e8f0;border-top:4px solid #2563eb;border-radius:50%;width:48px;height:48px;animation:spin 1s linear infinite;margin:16px auto;"></div>
+                <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+                <div class="big">Dispensing...</div>
+                <div class="sub">Please wait and collect your pad(s)</div>
+                <div class="sub" style="margin-top:8px" id="dispenseQty">Qty : 3</div>
+            </div>
+        </div>
+        
+        <!-- SUCCESS PAGE -->
+        <div id="successSection" class="section">
+            <div class="card center">
+                <div class="success-icon">✅</div>
+                <div class="big" style="color:#166534">Dispensed Successfully!</div>
+                <p class="sub">Thank you. Please collect your pad(s).</p>
+                <button class="btn" onclick="goHome()">Return to Home</button>
+            </div>
+        </div>
+        
+        <!-- FAIL PAGE -->
+        <div id="failSection" class="section">
+            <div class="card center">
+                <div class="fail-icon">❌</div>
+                <div class="big" style="color:#991b1b">Dispensing Failed</div>
+                <p class="sub" id="failDetails">1 of 3 pad(s) dispensed.</p>
+                <hr class="divider">
+                <div class="label">Refund Amount</div>
+                <div class="big" id="refundAmount">Rs. 20</div>
+                <p class="sub">Please collect your refund from the machine slot.</p>
+                <button class="btn" onclick="goHome()">Return to Home</button>
+            </div>
+        </div>
+        
+        <!-- OUT OF ORDER PAGE -->
+        <div id="outOfOrderSection" class="section">
+            <div class="card center">
+                <div style="font-size:48px;margin-bottom:16px">⚠️</div>
+                <div class="big" style="color:#991b1b">Out of Order</div>
+                <p class="sub">This machine is temporarily unavailable.</p>
+                <p class="sub">Please contact staff for assistance.</p>
+                <p class="sub" style="color:#999;font-size:12px">Staff: hold reset button 5s on machine</p>
+            </div>
+        </div>
+        
+        <!-- STAFF PIN PAGE -->
+        <div id="pinSection" class="section">
+            <div class="card center">
+                <div style="font-size:48px;margin-bottom:16px">🔒</div>
+                <div class="big">Staff PIN</div>
+                <p class="sub">Enter staff PIN to clear fault and restock.</p>
+                <div class="pin-row" id="pinDots">
+                    <div class="pin-dot"></div>
+                    <div class="pin-dot"></div>
+                    <div class="pin-dot"></div>
+                    <div class="pin-dot"></div>
+                </div>
+                <div class="pin-pad">
+                    <button class="pin-btn" onclick="enterPin(1)">1</button>
+                    <button class="pin-btn" onclick="enterPin(2)">2</button>
+                    <button class="pin-btn" onclick="enterPin(3)">3</button>
+                    <button class="pin-btn" onclick="enterPin(4)">4</button>
+                    <button class="pin-btn" onclick="enterPin(5)">5</button>
+                    <button class="pin-btn" onclick="enterPin(6)">6</button>
+                    <button class="pin-btn" onclick="enterPin(7)">7</button>
+                    <button class="pin-btn" onclick="enterPin(8)">8</button>
+                    <button class="pin-btn" onclick="enterPin(9)">9</button>
+                    <button class="pin-btn" onclick="clearPin()">✕</button>
+                    <button class="pin-btn" onclick="enterPin(0)">0</button>
+                    <button class="pin-btn" onclick="backspacePin()">←</button>
+                </div>
+                <button class="btn btn-outline wide" onclick="cancelPin()">Cancel</button>
+            </div>
+        </div>
+        
+        <!-- RESTOCK PAGE -->
+        <div id="restockSection" class="section">
+            <div class="card center">
+                <div class="big">Enter Stock Count</div>
+                <p class="sub">How many pads are currently loaded in the machine?</p>
+                <input type="number" id="stockInput" value="10" style="width:100%;padding:14px;text-align:center;font-size:24px;border:1px solid #cbd5e1;border-radius:10px;margin:16px 0;">
+                <button class="btn" onclick="confirmRestock()">Confirm & Restart Machine</button>
+            </div>
+        </div>
+        
+        <!-- RESET SUCCESS PAGE -->
+        <div id="resetSuccessSection" class="section">
+            <div class="card center">
+                <div class="success-icon">✅</div>
+                <div class="big" style="color:#166534">Machine Reset</div>
+                <p class="sub" id="resetMessage">Stock set to 35. Machine is back online.</p>
+                <button class="btn" onclick="goHome()">Go to Home</button>
+            </div>
         </div>
     </div>
 
@@ -137,5 +336,178 @@
             [Your Business Name as per PAN/GST]
         </div>
     </div>
+
+    <script>
+        // Configuration
+        const PRICE_PER_PAD = 10;
+        const STAFF_PIN = '4729';
+        let currentQty = 1;
+        let currentStock = 10;
+        let pinEntry = '';
+        
+        // Generate simple QR code on canvas
+        function generateQR(text) {
+            const canvas = document.getElementById('qrCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(0, 0, 200, 200);
+            ctx.fillStyle = '#000';
+            
+            // Simple QR-like pattern (for demo)
+            const cellSize = 8;
+            for (let y = 0; y < 25; y++) {
+                for (let x = 0; x < 25; x++) {
+                    if (Math.random() > 0.5) {
+                        ctx.fillRect(x * cellSize + 20, y * cellSize + 20, cellSize, cellSize);
+                    }
+                }
+            }
+            // Position markers
+            ctx.fillRect(20, 20, 40, 40);
+            ctx.fillRect(140, 20, 40, 40);
+            ctx.fillRect(20, 140, 40, 40);
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(30, 30, 20, 20);
+            ctx.fillRect(150, 30, 20, 20);
+            ctx.fillRect(30, 150, 20, 20);
+        }
+        
+        // Navigation
+        function showSection(id) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+        
+        function updateDisplay() {
+            document.getElementById('qtyDisplay').textContent = currentQty;
+            document.getElementById('amountDisplay').textContent = 'Amount : Rs. ' + (currentQty * PRICE_PER_PAD);
+            document.getElementById('stockBadge').textContent = 'Stock : ' + currentStock;
+        }
+        
+        function changeQty(delta) {
+            const newQty = currentQty + delta;
+            if (newQty >= 1 && newQty <= currentStock) {
+                currentQty = newQty;
+                updateDisplay();
+            }
+        }
+        
+        function goToPayment() {
+            if (currentStock <= 0) {
+                showSection('outOfOrderSection');
+                return;
+            }
+            document.getElementById('paymentAmount').textContent = 'Rs. ' + (currentQty * PRICE_PER_PAD);
+            document.getElementById('paymentQty').textContent = 'Qty: ' + currentQty + ' pad(s)';
+            generateQR('pad-' + currentQty + '-' + Date.now());
+            showSection('paymentSection');
+        }
+        
+        function cancelPayment() {
+            showSection('homeSection');
+        }
+        
+        // Simulate dispensing
+        setTimeout(() => {
+            // Auto-trigger dispensing from payment page after QR scan simulation
+            const paymentSection = document.getElementById('paymentSection');
+            if (paymentSection.classList.contains('active')) {
+                startDispensing();
+            }
+        }, 10000); // 10 seconds for demo
+        
+        function startDispensing() {
+            document.getElementById('dispenseQty').textContent = 'Qty : ' + currentQty;
+            showSection('dispensingSection');
+            
+            // Simulate dispensing delay
+            setTimeout(() => {
+                // Random success/fail for demo (80% success)
+                const success = Math.random() > 0.2;
+                if (success) {
+                    currentStock -= currentQty;
+                    showSection('successSection');
+                } else {
+                    const dispensed = Math.max(1, currentQty - 2);
+                    const failed = currentQty - dispensed;
+                    currentStock -= dispensed;
+                    document.getElementById('failDetails').textContent = dispensed + ' of ' + currentQty + ' pad(s) dispensed.';
+                    document.getElementById('refundAmount').textContent = 'Rs. ' + (failed * PRICE_PER_PAD);
+                    showSection('failSection');
+                }
+                updateDisplay();
+            }, 3000);
+        }
+        
+        function goHome() {
+            if (currentStock <= 0) {
+                showSection('outOfOrderSection');
+            } else {
+                currentQty = 1;
+                updateDisplay();
+                showSection('homeSection');
+            }
+        }
+        
+        // PIN functions
+        function enterPin(num) {
+            if (pinEntry.length < 4) {
+                pinEntry += num;
+                updatePinDots();
+                if (pinEntry.length === 4) {
+                    setTimeout(checkPin, 200);
+                }
+            }
+        }
+        
+        function updatePinDots() {
+            const dots = document.querySelectorAll('#pinDots .pin-dot');
+            dots.forEach((dot, i) => {
+                dot.classList.toggle('filled', i < pinEntry.length);
+            });
+        }
+        
+        function clearPin() {
+            pinEntry = '';
+            updatePinDots();
+        }
+        
+        function backspacePin() {
+            pinEntry = pinEntry.slice(0, -1);
+            updatePinDots();
+        }
+        
+        function checkPin() {
+            if (pinEntry === STAFF_PIN) {
+                pinEntry = '';
+                updatePinDots();
+                showSection('restockSection');
+            } else {
+                alert('Invalid PIN');
+                pinEntry = '';
+                updatePinDots();
+            }
+        }
+        
+        function cancelPin() {
+            pinEntry = '';
+            updatePinDots();
+            showSection('outOfOrderSection');
+        }
+        
+        function confirmRestock() {
+            const newStock = parseInt(document.getElementById('stockInput').value) || 10;
+            currentStock = newStock;
+            document.getElementById('resetMessage').textContent = 'Stock set to ' + newStock + '. Machine is back online.';
+            updateDisplay();
+            showSection('resetSuccessSection');
+        }
+        
+        // Initialize
+        updateDisplay();
+        
+        // For demo: Click QR to simulate scan
+        document.getElementById('qrCanvas').addEventListener('click', startDispensing);
+    </script>
 </body>
 </html>
