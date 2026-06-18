@@ -113,7 +113,7 @@
         .btn-outline:hover { background: #eff6ff; }
         .center { text-align: center; }
         
-        /* Payment page styles */
+        /* Payment page */
         .qr-wrap {
             background: #fff;
             border: 2px solid #e2e8f0;
@@ -122,19 +122,9 @@
             display: inline-block;
             margin: 12px 0;
         }
-        .qr-placeholder {
-            width: 200px;
-            height: 200px;
-            background: #f0f0f0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            color: #666;
-        }
         
         /* Result pages */
-        .success-icon { font-size: 56px; color: #4ecca3; margin-bottom: 16px; }
+        .success-icon { font-size: 56px; margin-bottom: 16px; }
         .fail-icon { font-size: 56px; color: #e94560; margin-bottom: 16px; }
         .big { font-size: 22px; font-weight: bold; margin: 12px 0; }
         .sub { font-size: 14px; color: #666; margin-bottom: 8px; }
@@ -171,7 +161,21 @@
             transition: all 0.2s;
         }
         .pin-btn:hover { background: #2563eb; color: #fff; }
-        .pin-btn.wide { grid-column: span 3; aspect-ratio: auto; padding: 14px; }
+        
+        /* Out of Order */
+        .warning-icon { font-size: 48px; margin-bottom: 16px; }
+        
+        /* Spinner */
+        .spinner {
+            border: 4px solid #e2e8f0;
+            border-top: 4px solid #2563eb;
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            animation: spin 1s linear infinite;
+            margin: 16px auto;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
         
         /* Footer */
         .footer { 
@@ -188,6 +192,17 @@
         /* Hidden sections */
         .section { display: none; }
         .section.active { display: block; }
+        
+        /* Stock input */
+        .stock-input {
+            width: 100%;
+            padding: 14px;
+            text-align: center;
+            font-size: 24px;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            margin: 16px 0;
+        }
     </style>
 </head>
 <body>
@@ -217,7 +232,7 @@
                 <div class="sub" id="paymentQty">Qty: 3 pad(s)</div>
                 <hr class="divider">
                 <div class="qr-wrap">
-                    <canvas id="qrCanvas" width="200" height="200"></canvas>
+                    <canvas id="qrCanvas" width="200" height="200" style="cursor:pointer;"></canvas>
                 </div>
                 <p class="sub" style="margin-top:8px">Scan this QR with any camera app</p>
                 <p class="sub">Dispensing starts automatically</p>
@@ -229,8 +244,7 @@
         <!-- DISPENSING PAGE -->
         <div id="dispensingSection" class="section">
             <div class="card center">
-                <div class="spinner" style="border:4px solid #e2e8f0;border-top:4px solid #2563eb;border-radius:50%;width:48px;height:48px;animation:spin 1s linear infinite;margin:16px auto;"></div>
-                <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+                <div class="spinner"></div>
                 <div class="big">Dispensing...</div>
                 <div class="sub">Please wait and collect your pad(s)</div>
                 <div class="sub" style="margin-top:8px" id="dispenseQty">Qty : 3</div>
@@ -264,11 +278,13 @@
         <!-- OUT OF ORDER PAGE -->
         <div id="outOfOrderSection" class="section">
             <div class="card center">
-                <div style="font-size:48px;margin-bottom:16px">⚠️</div>
+                <div class="warning-icon">⚠️</div>
                 <div class="big" style="color:#991b1b">Out of Order</div>
                 <p class="sub">This machine is temporarily unavailable.</p>
                 <p class="sub">Please contact staff for assistance.</p>
-                <p class="sub" style="color:#999;font-size:12px">Staff: hold reset button 5s on machine</p>
+                <p class="sub" style="color:#999;font-size:12px;margin-top:16px;">
+                    Staff: <a href="#" onclick="showPinPage()" style="color:#2563eb;">hold reset button 5s on machine</a>
+                </p>
             </div>
         </div>
         
@@ -294,11 +310,11 @@
                     <button class="pin-btn" onclick="enterPin(7)">7</button>
                     <button class="pin-btn" onclick="enterPin(8)">8</button>
                     <button class="pin-btn" onclick="enterPin(9)">9</button>
-                    <button class="pin-btn" onclick="clearPin()">✕</button>
+                    <button class="pin-btn" onclick="clearPin()" style="color:#e94560;border-color:#e94560;">✕</button>
                     <button class="pin-btn" onclick="enterPin(0)">0</button>
                     <button class="pin-btn" onclick="backspacePin()">←</button>
                 </div>
-                <button class="btn btn-outline wide" onclick="cancelPin()">Cancel</button>
+                <button class="btn btn-outline" onclick="cancelPin()" style="margin-top:20px;">Cancel</button>
             </div>
         </div>
         
@@ -307,7 +323,7 @@
             <div class="card center">
                 <div class="big">Enter Stock Count</div>
                 <p class="sub">How many pads are currently loaded in the machine?</p>
-                <input type="number" id="stockInput" value="10" style="width:100%;padding:14px;text-align:center;font-size:24px;border:1px solid #cbd5e1;border-radius:10px;margin:16px 0;">
+                <input type="number" id="stockInput" value="10" class="stock-input" min="1" max="100">
                 <button class="btn" onclick="confirmRestock()">Confirm & Restart Machine</button>
             </div>
         </div>
@@ -345,7 +361,7 @@
         let currentStock = 10;
         let pinEntry = '';
         
-        // Generate simple QR code on canvas
+        // Generate QR code
         function generateQR(text) {
             const canvas = document.getElementById('qrCanvas');
             const ctx = canvas.getContext('2d');
@@ -353,23 +369,23 @@
             ctx.fillRect(0, 0, 200, 200);
             ctx.fillStyle = '#000';
             
-            // Simple QR-like pattern (for demo)
-            const cellSize = 8;
-            for (let y = 0; y < 25; y++) {
-                for (let x = 0; x < 25; x++) {
+            // Simple QR-like pattern
+            const cellSize = 7;
+            for (let y = 0; y < 28; y++) {
+                for (let x = 0; x < 28; x++) {
                     if (Math.random() > 0.5) {
-                        ctx.fillRect(x * cellSize + 20, y * cellSize + 20, cellSize, cellSize);
+                        ctx.fillRect(x * cellSize + 10, y * cellSize + 10, cellSize, cellSize);
                     }
                 }
             }
             // Position markers
-            ctx.fillRect(20, 20, 40, 40);
-            ctx.fillRect(140, 20, 40, 40);
-            ctx.fillRect(20, 140, 40, 40);
+            ctx.fillRect(10, 10, 35, 35);
+            ctx.fillRect(155, 10, 35, 35);
+            ctx.fillRect(10, 155, 35, 35);
             ctx.fillStyle = '#fff';
-            ctx.fillRect(30, 30, 20, 20);
-            ctx.fillRect(150, 30, 20, 20);
-            ctx.fillRect(30, 150, 20, 20);
+            ctx.fillRect(18, 18, 19, 19);
+            ctx.fillRect(163, 18, 19, 19);
+            ctx.fillRect(18, 163, 19, 19);
         }
         
         // Navigation
@@ -408,29 +424,20 @@
         }
         
         // Simulate dispensing
-        setTimeout(() => {
-            // Auto-trigger dispensing from payment page after QR scan simulation
-            const paymentSection = document.getElementById('paymentSection');
-            if (paymentSection.classList.contains('active')) {
-                startDispensing();
-            }
-        }, 10000); // 10 seconds for demo
-        
         function startDispensing() {
             document.getElementById('dispenseQty').textContent = 'Qty : ' + currentQty;
             showSection('dispensingSection');
             
-            // Simulate dispensing delay
             setTimeout(() => {
-                // Random success/fail for demo (80% success)
-                const success = Math.random() > 0.2;
-                if (success) {
-                    currentStock -= currentQty;
+                // Simulate dispensing result (random for demo)
+                const dispensed = Math.random() > 0.3 ? currentQty : Math.max(0, currentQty - 1);
+                const failed = currentQty - dispensed;
+                
+                currentStock -= dispensed;
+                
+                if (failed === 0) {
                     showSection('successSection');
                 } else {
-                    const dispensed = Math.max(1, currentQty - 2);
-                    const failed = currentQty - dispensed;
-                    currentStock -= dispensed;
                     document.getElementById('failDetails').textContent = dispensed + ' of ' + currentQty + ' pad(s) dispensed.';
                     document.getElementById('refundAmount').textContent = 'Rs. ' + (failed * PRICE_PER_PAD);
                     showSection('failSection');
@@ -440,16 +447,22 @@
         }
         
         function goHome() {
+            currentQty = 1;
+            updateDisplay();
             if (currentStock <= 0) {
                 showSection('outOfOrderSection');
             } else {
-                currentQty = 1;
-                updateDisplay();
                 showSection('homeSection');
             }
         }
         
         // PIN functions
+        function showPinPage() {
+            pinEntry = '';
+            updatePinDots();
+            showSection('pinSection');
+        }
+        
         function enterPin(num) {
             if (pinEntry.length < 4) {
                 pinEntry += num;
@@ -479,26 +492,24 @@
         
         function checkPin() {
             if (pinEntry === STAFF_PIN) {
-                pinEntry = '';
-                updatePinDots();
+                clearPin();
                 showSection('restockSection');
             } else {
-                alert('Invalid PIN');
-                pinEntry = '';
-                updatePinDots();
+                alert('Invalid PIN! Try again.');
+                clearPin();
             }
         }
         
         function cancelPin() {
-            pinEntry = '';
-            updatePinDots();
+            clearPin();
             showSection('outOfOrderSection');
         }
         
+        // Restock functions
         function confirmRestock() {
             const newStock = parseInt(document.getElementById('stockInput').value) || 10;
-            currentStock = newStock;
-            document.getElementById('resetMessage').textContent = 'Stock set to ' + newStock + '. Machine is back online.';
+            currentStock = Math.min(newStock, 100);
+            document.getElementById('resetMessage').textContent = 'Stock set to ' + currentStock + '. Machine is back online.';
             updateDisplay();
             showSection('resetSuccessSection');
         }
@@ -506,8 +517,16 @@
         // Initialize
         updateDisplay();
         
-        // For demo: Click QR to simulate scan
+        // Click QR to simulate scan
         document.getElementById('qrCanvas').addEventListener('click', startDispensing);
+        
+        // Auto-dispense after 8 seconds on payment page
+        setInterval(() => {
+            const paymentSection = document.getElementById('paymentSection');
+            if (paymentSection.classList.contains('active')) {
+                startDispensing();
+            }
+        }, 8000);
     </script>
 </body>
 </html>
