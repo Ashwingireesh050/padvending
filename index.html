@@ -1,512 +1,199 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PadVending - Smart Sanitary Pad Dispenser</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-            background: #f0f4f8; 
-            color: #333;
-            line-height: 1.6;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-        .header { 
-            width: 100%; 
-            background: #2563eb; 
-            color: #fff; 
-            text-align: center; 
-            padding: 16px; 
-            font-size: 20px; 
-            font-weight: bold;
-        }
-        .container { 
-            max-width: 400px; 
-            margin: 0 auto; 
-            padding: 20px; 
-            width: 100%;
-            flex: 1;
-        }
-        .card { 
-            background: #fff; 
-            border-radius: 12px; 
-            box-shadow: 0 2px 12px rgba(0,0,0,0.1); 
-            padding: 28px 24px; 
-            margin: 20px 0;
-        }
-        .badge { 
-            display: inline-block; 
-            padding: 6px 16px; 
-            border-radius: 20px; 
-            font-size: 14px; 
-            font-weight: bold;
-            margin-bottom: 20px;
-        }
-        .badge-green { background: #dcfce7; color: #166534; }
-        .badge-red { background: #fee2e2; color: #991b1b; }
-        .label { color: #555; font-size: 14px; margin-bottom: 8px; }
-        .qty-row { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 16px 0; }
-        .qty-btn { 
-            width: 48px; 
-            height: 48px; 
-            border: 2px solid #2563eb; 
-            background: #fff; 
-            color: #2563eb; 
-            border-radius: 10px; 
-            font-size: 24px; 
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-            user-select: none;
-        }
-        .qty-btn:hover { background: #2563eb; color: #fff; }
-        .qty-btn:active { transform: scale(0.95); }
-        .qty-box { 
-            width: 60px; 
-            height: 48px; 
-            border: 1px solid #cbd5e1; 
-            border-radius: 10px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            font-size: 24px; 
-            font-weight: bold;
-            background: #fff;
-        }
-        .amount-box { 
-            border: 1px solid #cbd5e1; 
-            border-radius: 10px; 
-            padding: 14px; 
-            text-align: center; 
-            font-size: 18px; 
-            color: #374151; 
-            background: #f8fafc;
-            margin: 16px 0;
-        }
-        .btn { 
-            width: 100%; 
-            background: #2563eb; 
-            color: #fff; 
-            border: none; 
-            border-radius: 10px; 
-            padding: 14px; 
-            font-size: 16px; 
-            cursor: pointer; 
-            margin-top: 12px;
-            text-decoration: none;
-            display: inline-block;
-            text-align: center;
-            transition: background 0.2s;
-        }
-        .btn:hover { background: #1d4ed8; }
-        .btn-outline { 
-            background: #fff; 
-            color: #2563eb; 
-            border: 2px solid #2563eb; 
-        }
-        .btn-outline:hover { background: #eff6ff; }
-        .center { text-align: center; }
-        
-        .qr-wrap {
-            background: #fff;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 16px;
-            display: inline-block;
-            margin: 12px 0;
-        }
-        
-        .success-icon { font-size: 56px; margin-bottom: 16px; }
-        .fail-icon { font-size: 56px; color: #e94560; margin-bottom: 16px; }
-        .big { font-size: 22px; font-weight: bold; margin: 12px 0; }
-        .sub { font-size: 14px; color: #666; margin-bottom: 8px; }
-        .divider { border: none; border-top: 1px solid #e2e8f0; margin: 16px 0; }
-        
-        .pin-row { display: flex; justify-content: center; gap: 12px; margin: 20px 0; }
-        .pin-dot {
-            width: 16px;
-            height: 16px;
-            border: 2px solid #2563eb;
-            border-radius: 50%;
-            transition: all 0.2s;
-        }
-        .pin-dot.filled { background: #2563eb; }
-        .pin-pad {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            max-width: 280px;
-            margin: 0 auto;
-        }
-        .pin-btn {
-            aspect-ratio: 1;
-            border: 2px solid #2563eb;
-            background: #fff;
-            color: #2563eb;
-            border-radius: 10px;
-            font-size: 24px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-        }
-        .pin-btn:hover { background: #2563eb; color: #fff; }
-        
-        .warning-icon { font-size: 48px; margin-bottom: 16px; }
-        
-        .spinner {
-            border: 4px solid #e2e8f0;
-            border-top: 4px solid #2563eb;
-            border-radius: 50%;
-            width: 48px;
-            height: 48px;
-            animation: spin 1s linear infinite;
-            margin: 16px auto;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        
-        .footer { 
-            background: #1e3a5f; 
-            color: #fff; 
-            padding: 30px 20px; 
-            margin-top: auto;
-        }
-        .footer-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; margin-bottom: 20px; }
-        .footer-links a { color: #fff; text-decoration: none; font-size: 14px; }
-        .footer-links a:hover { text-decoration: underline; }
-        .copyright { text-align: center; font-size: 12px; color: #94a3b8; }
-        
-        .section { display: none; }
-        .section.active { display: block; }
-        
-        .stock-input {
-            width: 100%;
-            padding: 14px;
-            text-align: center;
-            font-size: 24px;
-            border: 1px solid #cbd5e1;
-            border-radius: 10px;
-            margin: 16px 0;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PadVending - Smart Sanitary Pad Dispenser</title>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f0f4f8; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
+    .container { background: #fff; border-radius: 20px; padding: 30px; max-width: 400px; width: 100%; box-shadow: 0 10px 40px rgba(0,0,0,0.1); }
+    .header { text-align: center; margin-bottom: 25px; }
+    .header h1 { color: #e91e63; font-size: 1.8rem; display: flex; align-items: center; justify-content: center; gap: 10px; }
+    .stock { text-align: center; color: #666; margin-bottom: 20px; font-size: 0.95rem; }
+    .stock span { color: #4caf50; font-weight: bold; }
+    .quantity { margin-bottom: 20px; }
+    .quantity label { display: block; margin-bottom: 8px; color: #333; font-weight: 500; }
+    .quantity input { width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 1.1rem; text-align: center; }
+    .amount { text-align: center; margin-bottom: 20px; }
+    .amount .price { font-size: 2.5rem; font-weight: bold; color: #333; }
+    .amount .currency { font-size: 1.2rem; color: #666; }
+    .pay-btn { width: 100%; padding: 15px; background: #2563eb; color: #fff; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+    .pay-btn:hover { background: #1d4ed8; }
+    .pay-btn:disabled { background: #ccc; cursor: not-allowed; }
+    .status { text-align: center; margin-top: 15px; padding: 12px; border-radius: 10px; font-size: 0.95rem; }
+    .status.loading { background: #dbeafe; color: #1e40af; }
+    .status.success { background: #dcfce7; color: #166534; }
+    .status.error { background: #fee2e2; color: #991b1b; }
+    .hidden { display: none; }
+    .dispensing { text-align: center; padding: 30px; }
+    .dispensing .spinner { width: 50px; height: 50px; border: 4px solid #e0e0e0; border-top-color: #2563eb; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .success-screen { text-align: center; padding: 30px; }
+    .success-screen .icon { font-size: 4rem; margin-bottom: 15px; }
+    .success-screen h2 { color: #166534; margin-bottom: 10px; }
+    .success-screen p { color: #666; }
+    .home-btn { margin-top: 20px; padding: 12px 30px; background: #2563eb; color: #fff; border: none; border-radius: 10px; cursor: pointer; font-size: 1rem; }
+  </style>
 </head>
 <body>
-    <div class="header">Sanitary Pad Dispenser</div>
-    
-    <div class="container">
-        <!-- HOME PAGE -->
-        <div id="homeSection" class="section active">
-            <div class="card center">
-                <div class="badge badge-green" id="stockBadge">Stock : 10</div>
-                <div class="label">Select Quantity</div>
-                <div class="qty-row">
-                    <button class="qty-btn" onclick="changeQty(-1)">−</button>
-                    <div class="qty-box" id="qtyDisplay">1</div>
-                    <button class="qty-btn" onclick="changeQty(1)">+</button>
-                </div>
-                <div class="amount-box" id="amountDisplay">Amount : Rs. 10</div>
-                <button class="btn" onclick="goToPayment()">Continue to Payment >></button>
-            </div>
-        </div>
-        
-        <!-- PAYMENT PAGE -->
-        <div id="paymentSection" class="section">
-            <div class="card center">
-                <div class="sub">Scan QR to confirm payment</div>
-                <div class="big" id="paymentAmount">Rs. 30</div>
-                <div class="sub" id="paymentQty">Qty: 3 pad(s)</div>
-                <hr class="divider">
-                <div class="qr-wrap">
-                    <canvas id="qrCanvas" width="200" height="200" style="cursor:pointer;"></canvas>
-                </div>
-                <p class="sub" style="margin-top:8px">Scan this QR with any camera app</p>
-                <p class="sub">Dispensing starts automatically</p>
-                <hr class="divider">
-                <button class="btn btn-outline" onclick="cancelPayment()">Cancel</button>
-            </div>
-        </div>
-        
-        <!-- DISPENSING PAGE -->
-        <div id="dispensingSection" class="section">
-            <div class="card center">
-                <div class="spinner"></div>
-                <div class="big">Dispensing...</div>
-                <div class="sub">Please wait and collect your pad(s)</div>
-                <div class="sub" style="margin-top:8px" id="dispenseQty">Qty : 3</div>
-            </div>
-        </div>
-        
-        <!-- SUCCESS PAGE -->
-        <div id="successSection" class="section">
-            <div class="card center">
-                <div class="success-icon">✅</div>
-                <div class="big" style="color:#166534">Dispensed Successfully!</div>
-                <p class="sub">Thank you. Please collect your pad(s).</p>
-                <button class="btn" onclick="goHome()">Return to Home</button>
-            </div>
-        </div>
-        
-        <!-- FAIL PAGE -->
-        <div id="failSection" class="section">
-            <div class="card center">
-                <div class="fail-icon">❌</div>
-                <div class="big" style="color:#991b1b">Dispensing Failed</div>
-                <p class="sub" id="failDetails">1 of 3 pad(s) dispensed.</p>
-                <hr class="divider">
-                <div class="label">Refund Amount</div>
-                <div class="big" id="refundAmount">Rs. 20</div>
-                <p class="sub">Please collect your refund from the machine slot.</p>
-                <button class="btn" onclick="goHome()">Return to Home</button>
-            </div>
-        </div>
-        
-        <!-- OUT OF ORDER PAGE -->
-        <div id="outOfOrderSection" class="section">
-            <div class="card center">
-                <div class="warning-icon">⚠️</div>
-                <div class="big" style="color:#991b1b">Out of Order</div>
-                <p class="sub">This machine is temporarily unavailable.</p>
-                <p class="sub">Please contact staff for assistance.</p>
-                <p class="sub" style="color:#999;font-size:12px;margin-top:16px;">
-                    Staff: <a href="#" onclick="showPinPage()" style="color:#2563eb;">hold reset button 5s on machine</a>
-                </p>
-            </div>
-        </div>
-        
-        <!-- STAFF PIN PAGE -->
-        <div id="pinSection" class="section">
-            <div class="card center">
-                <div style="font-size:48px;margin-bottom:16px">🔒</div>
-                <div class="big">Staff PIN</div>
-                <p class="sub">Enter staff PIN to clear fault and restock.</p>
-                <div class="pin-row" id="pinDots">
-                    <div class="pin-dot"></div>
-                    <div class="pin-dot"></div>
-                    <div class="pin-dot"></div>
-                    <div class="pin-dot"></div>
-                </div>
-                <div class="pin-pad">
-                    <button class="pin-btn" onclick="enterPin(1)">1</button>
-                    <button class="pin-btn" onclick="enterPin(2)">2</button>
-                    <button class="pin-btn" onclick="enterPin(3)">3</button>
-                    <button class="pin-btn" onclick="enterPin(4)">4</button>
-                    <button class="pin-btn" onclick="enterPin(5)">5</button>
-                    <button class="pin-btn" onclick="enterPin(6)">6</button>
-                    <button class="pin-btn" onclick="enterPin(7)">7</button>
-                    <button class="pin-btn" onclick="enterPin(8)">8</button>
-                    <button class="pin-btn" onclick="enterPin(9)">9</button>
-                    <button class="pin-btn" onclick="clearPin()" style="color:#e94560;border-color:#e94560;">✕</button>
-                    <button class="pin-btn" onclick="enterPin(0)">0</button>
-                    <button class="pin-btn" onclick="backspacePin()">←</button>
-                </div>
-                <button class="btn btn-outline" onclick="cancelPin()" style="margin-top:20px;">Cancel</button>
-            </div>
-        </div>
-        
-        <!-- RESTOCK PAGE -->
-        <div id="restockSection" class="section">
-            <div class="card center">
-                <div class="big">Enter Stock Count</div>
-                <p class="sub">How many pads are currently loaded in the machine?</p>
-                <input type="number" id="stockInput" value="10" class="stock-input" min="1" max="100">
-                <button class="btn" onclick="confirmRestock()">Confirm & Restart Machine</button>
-            </div>
-        </div>
-        
-        <!-- RESET SUCCESS PAGE -->
-        <div id="resetSuccessSection" class="section">
-            <div class="card center">
-                <div class="success-icon">✅</div>
-                <div class="big" style="color:#166534">Machine Reset</div>
-                <p class="sub" id="resetMessage">Stock set to 35. Machine is back online.</p>
-                <button class="btn" onclick="goHome()">Go to Home</button>
-            </div>
-        </div>
+  <div class="container" id="mainScreen">
+    <div class="header">
+      <h1>🩸 PadVending</h1>
+      <p>Smart Sanitary Pad Dispenser</p>
     </div>
-
-    <div class="footer">
-        <div class="footer-links">
-            <a href="about.html">About Us</a>
-            <a href="contact.html">Contact</a>
-            <a href="terms.html">Terms</a>
-            <a href="privacy.html">Privacy</a>
-            <a href="refund.html">Refunds</a>
-        </div>
-        <div class="copyright">
-            © 2026 PadVending. All rights reserved.<br>
-            ASHWIN GIREESH | Gireesh Bhavan, Pidavoor PO, Pathanapuram, Kerala<br>
-            Phone: +91-9778262372 | PAN: ENHPG1844L
-        </div>
+    <div class="stock">Stock : <span id="stockCount">10</span></div>
+    <div class="quantity">
+      <label>Select Quantity</label>
+      <input type="number" id="qtyInput" value="1" min="1" max="10">
     </div>
+    <div class="amount">
+      <div class="price" id="totalPrice">₹10</div>
+      <div class="currency" id="priceBreakdown">1 pad × ₹10</div>
+    </div>
+    <button class="pay-btn" id="payBtn" onclick="payNow()">Pay Now</button>
+    <div class="status hidden" id="statusMsg"></div>
+  </div>
 
-    <script>
-        const PRICE_PER_PAD = 10;
-        const STAFF_PIN = '4729';
-        let currentQty = 1;
-        let currentStock = 10;
-        let pinEntry = '';
-        
-        function generateQR(text) {
-            const canvas = document.getElementById('qrCanvas');
-            const ctx = canvas.getContext('2d');
-            ctx.fillStyle = '#fff';
-            ctx.fillRect(0, 0, 200, 200);
-            ctx.fillStyle = '#000';
-            
-            const cellSize = 7;
-            for (let y = 0; y < 28; y++) {
-                for (let x = 0; x < 28; x++) {
-                    if (Math.random() > 0.5) {
-                        ctx.fillRect(x * cellSize + 10, y * cellSize + 10, cellSize, cellSize);
-                    }
-                }
+  <div class="container hidden" id="dispensingScreen">
+    <div class="dispensing">
+      <div class="spinner"></div>
+      <h3>Dispensing...</h3>
+      <p>Please wait and collect your pad(s)</p>
+      <p id="dispenseQty">Qty : 1</p>
+    </div>
+  </div>
+
+  <div class="container hidden" id="successScreen">
+    <div class="success-screen">
+      <div class="icon">✅</div>
+      <h2>Dispensed Successfully!</h2>
+      <p>Thank you. Please collect your pad(s).</p>
+      <button class="home-btn" onclick="goHome()">Return to Home</button>
+    </div>
+  </div>
+
+  <script>
+    const PRICE_PER_PAD = 10;
+    const BACKEND_URL = 'http://localhost:3000'; // Your local backend
+    let currentTxnId = null;
+
+    // Update price when quantity changes
+    document.getElementById('qtyInput').addEventListener('input', function() {
+      const qty = parseInt(this.value) || 1;
+      const total = qty * PRICE_PER_PAD;
+      document.getElementById('totalPrice').textContent = '₹' + total;
+      document.getElementById('priceBreakdown').textContent = qty + ' pad' + (qty > 1 ? 's' : '') + ' × ₹' + PRICE_PER_PAD;
+    });
+
+    async function payNow() {
+      const qty = parseInt(document.getElementById('qtyInput').value) || 1;
+      const amount = qty * PRICE_PER_PAD;
+      const btn = document.getElementById('payBtn');
+      const status = document.getElementById('statusMsg');
+
+      btn.disabled = true;
+      status.className = 'status loading';
+      status.textContent = 'Creating payment order...';
+      status.classList.remove('hidden');
+
+      try {
+        // Step 1: Create order via backend
+        const txnId = 'TXN_' + Date.now();
+        currentTxnId = txnId;
+
+        const res = await fetch(BACKEND_URL + '/api/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            machine_id: 'PAD_VM_001',
+            transaction_id: txnId,
+            amount: amount,
+            quantity: qty,
+            price_per_item: PRICE_PER_PAD,
+            stock_before: parseInt(document.getElementById('stockCount').textContent)
+          })
+        });
+
+        const data = await res.json();
+        console.log('Order created:', data);
+
+        if (!data.order_id) {
+          throw new Error(data.error || 'Failed to create order');
+        }
+
+        // Step 2: Open Razorpay checkout
+        const options = {
+          key: data.razorpay_key,
+          amount: data.amount * 100,
+          currency: 'INR',
+          name: 'PadVending',
+          description: 'Sanitary Pad × ' + qty,
+          order_id: data.order_id,
+          handler: function(response) {
+            console.log('Payment success:', response);
+            status.className = 'status success';
+            status.textContent = 'Payment successful! Dispensing...';
+            startDispensing(qty);
+          },
+          modal: {
+            ondismiss: function() {
+              btn.disabled = false;
+              status.className = 'status error';
+              status.textContent = 'Payment cancelled';
             }
-            ctx.fillRect(10, 10, 35, 35);
-            ctx.fillRect(155, 10, 35, 35);
-            ctx.fillRect(10, 155, 35, 35);
-            ctx.fillStyle = '#fff';
-            ctx.fillRect(18, 18, 19, 19);
-            ctx.fillRect(163, 18, 19, 19);
-            ctx.fillRect(18, 163, 19, 19);
-        }
+          },
+          theme: { color: '#2563eb' }
+        };
+
+        const rzp = new Razorpay(options);
+        rzp.open();
+
+      } catch (err) {
+        console.error('Payment error:', err);
+        btn.disabled = false;
+        status.className = 'status error';
+        status.textContent = 'Error: ' + err.message;
+      }
+    }
+
+    function startDispensing(qty) {
+      document.getElementById('mainScreen').classList.add('hidden');
+      document.getElementById('dispensingScreen').classList.remove('hidden');
+      document.getElementById('dispenseQty').textContent = 'Qty : ' + qty;
+
+      // Simulate dispensing delay (replace with real ESP32 call later)
+      setTimeout(() => {
+        document.getElementById('dispensingScreen').classList.add('hidden');
+        document.getElementById('successScreen').classList.remove('hidden');
         
-        function showSection(id) {
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-        }
-        
-        function updateDisplay() {
-            document.getElementById('qtyDisplay').textContent = currentQty;
-            document.getElementById('amountDisplay').textContent = 'Amount : Rs. ' + (currentQty * PRICE_PER_PAD);
-            document.getElementById('stockBadge').textContent = 'Stock : ' + currentStock;
-        }
-        
-        function changeQty(delta) {
-            const newQty = currentQty + delta;
-            if (newQty >= 1 && newQty <= currentStock) {
-                currentQty = newQty;
-                updateDisplay();
-            }
-        }
-        
-        function goToPayment() {
-            if (currentStock <= 0) {
-                showSection('outOfOrderSection');
-                return;
-            }
-            document.getElementById('paymentAmount').textContent = 'Rs. ' + (currentQty * PRICE_PER_PAD);
-            document.getElementById('paymentQty').textContent = 'Qty: ' + currentQty + ' pad(s)';
-            generateQR('pad-' + currentQty + '-' + Date.now());
-            showSection('paymentSection');
-        }
-        
-        function cancelPayment() {
-            showSection('homeSection');
-        }
-        
-        function startDispensing() {
-            document.getElementById('dispenseQty').textContent = 'Qty : ' + currentQty;
-            showSection('dispensingSection');
-            
-            setTimeout(() => {
-                const dispensed = Math.random() > 0.3 ? currentQty : Math.max(0, currentQty - 1);
-                const failed = currentQty - dispensed;
-                
-                currentStock -= dispensed;
-                
-                if (failed === 0) {
-                    showSection('successSection');
-                } else {
-                    document.getElementById('failDetails').textContent = dispensed + ' of ' + currentQty + ' pad(s) dispensed.';
-                    document.getElementById('refundAmount').textContent = 'Rs. ' + (failed * PRICE_PER_PAD);
-                    showSection('failSection');
-                }
-                updateDisplay();
-            }, 3000);
-        }
-        
-        function goHome() {
-            currentQty = 1;
-            updateDisplay();
-            if (currentStock <= 0) {
-                showSection('outOfOrderSection');
-            } else {
-                showSection('homeSection');
-            }
-        }
-        
-        function showPinPage() {
-            pinEntry = '';
-            updatePinDots();
-            showSection('pinSection');
-        }
-        
-        function enterPin(num) {
-            if (pinEntry.length < 4) {
-                pinEntry += num;
-                updatePinDots();
-                if (pinEntry.length === 4) {
-                    setTimeout(checkPin, 200);
-                }
-            }
-        }
-        
-        function updatePinDots() {
-            const dots = document.querySelectorAll('#pinDots .pin-dot');
-            dots.forEach((dot, i) => {
-                dot.classList.toggle('filled', i < pinEntry.length);
-            });
-        }
-        
-        function clearPin() {
-            pinEntry = '';
-            updatePinDots();
-        }
-        
-        function backspacePin() {
-            pinEntry = pinEntry.slice(0, -1);
-            updatePinDots();
-        }
-        
-        function checkPin() {
-            if (pinEntry === STAFF_PIN) {
-                clearPin();
-                showSection('restockSection');
-            } else {
-                alert('Invalid PIN! Try again.');
-                clearPin();
-            }
-        }
-        
-        function cancelPin() {
-            clearPin();
-            showSection('outOfOrderSection');
-        }
-        
-        function confirmRestock() {
-            const newStock = parseInt(document.getElementById('stockInput').value) || 10;
-            currentStock = Math.min(newStock, 100);
-            document.getElementById('resetMessage').textContent = 'Stock set to ' + currentStock + '. Machine is back online.';
-            updateDisplay();
-            showSection('resetSuccessSection');
-        }
-        
-        updateDisplay();
-        document.getElementById('qrCanvas').addEventListener('click', startDispensing);
-        
-        setInterval(() => {
-            const paymentSection = document.getElementById('paymentSection');
-            if (paymentSection.classList.contains('active')) {
-                startDispensing();
-            }
-        }, 8000);
-    </script>
+        // Update stock
+        const currentStock = parseInt(document.getElementById('stockCount').textContent);
+        document.getElementById('stockCount').textContent = Math.max(0, currentStock - qty);
+      }, 3000);
+    }
+
+    function goHome() {
+      document.getElementById('successScreen').classList.add('hidden');
+      document.getElementById('mainScreen').classList.remove('hidden');
+      document.getElementById('payBtn').disabled = false;
+      document.getElementById('statusMsg').classList.add('hidden');
+      document.getElementById('qtyInput').value = 1;
+      document.getElementById('totalPrice').textContent = '₹10';
+      document.getElementById('priceBreakdown').textContent = '1 pad × ₹10';
+    }
+
+    // Check if backend is reachable
+    fetch(BACKEND_URL + '/api/health')
+      .then(r => r.json())
+      .then(() => console.log('Backend connected'))
+      .catch(() => {
+        const status = document.getElementById('statusMsg');
+        status.className = 'status error';
+        status.textContent = '⚠️ Connect to same WiFi as machine to pay';
+        status.classList.remove('hidden');
+      });
+  </script>
 </body>
 </html>
