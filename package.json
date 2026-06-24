@@ -1,0 +1,21 @@
+{
+  "name": "pad-vending-server",
+  "version": "1.0.0",
+  "description": "Sanitary Pad Vending Machine Backend",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "razorpay": "^2.9.2",
+    "sqlite3": "^5.1.6",
+    "uuid": "^9.0.0",
+    "ws": "^8.14.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
